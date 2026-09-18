@@ -1,15 +1,15 @@
 // ==UserScript==
 // @name         YouTube — PiP-кнопка в плеере
-// @namespace    https://github.com/StiffMusic/stiffmusic-userscripts
+// @namespace    https://github.com/Stiffan-de/stiff-scripts
 // @version      1.4.0
 // @description  Вынести видео в мини-окно (Picture-in-Picture). Alt+P — PiP, Alt+F — полный экран. / Adds PiP and Fullscreen buttons to YouTube player.
-// @author       Stiff music
-// @copyright    2026, Stiff music (https://github.com/StiffMusic)
+// @author       Stiffan-de 
+// @copyright    2026, Stiffan-de (https://github.com/StiffMusic)
 // @license      PolyForm-Noncommercial-1.0.0; https://polyformproject.org/licenses/noncommercial/1.0.0/
-// @homepageURL  https://github.com/StiffMusic/stiffmusic-userscripts
-// @supportURL   https://github.com/StiffMusic/stiffmusic-userscripts/issues
-// @updateURL    https://raw.githubusercontent.com/StiffMusic/stiffmusic-userscripts/main/youtube-pip-button/youtube-pip-button.user.js
-// @downloadURL  https://raw.githubusercontent.com/StiffMusic/stiffmusic-userscripts/main/youtube-pip-button/youtube-pip-button.user.js
+// @homepageURL  https://github.com/Stiffan-de/stiff-scripts
+// @supportURL   https://github.com/Stiffan-de/stiff-scripts/issues
+// @updateURL    https://raw.githubusercontent.com/Stiffan-de/stiff-scripts/main/youtube-pip-button/youtube-pip-button.user.js
+// @downloadURL  https://raw.githubusercontent.com/Stiffan-de/stiff-scripts/main/youtube-pip-button/youtube-pip-button.user.js
 // @match        *://www.youtube.com/*
 // @match        *://youtube.com/*
 // @match        *://m.youtube.com/*

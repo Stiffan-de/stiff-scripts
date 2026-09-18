@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         Ad Filter (External Lists)
 // @namespace    https://github.com/Stiffan-de/stiff-scripts
-// @version      1.4.1
+// @version      1.4.2
 // @description  Фильтр рекламы: внешние списки, автономное обновление, живая панель с таймером, кэш, свои правила, :has-text(), настраиваемые хоткеи.
-// @author       Stiffan-de
-// @copyright    2026, Stiffan-de (https://github.com/Stiffan-de)
-// @license      PolyForm-Noncommercial-1.0.0; https://polyformproject.org/licenses/noncommercial/1.0.0/
+// @author       Stiff Music
+// @copyright    2026, Stiff Music (https://github.com/Stiffan-de)
+// @license      MIT
 // @homepageURL  https://github.com/Stiffan-de/stiff-scripts
 // @supportURL   https://github.com/Stiffan-de/stiff-scripts/issues
 // @updateURL    https://raw.githubusercontent.com/Stiffan-de/stiff-scripts/main/ad-filter/ad-filter.user.js
@@ -24,6 +24,28 @@
 // @noframes
 // ==/UserScript==
 
+/* ============================================================
+ *  ЛИЦЕНЗИЯ
+ *  ============================================================
+ *
+ *  Настоящие условия использования:
+ *    PolyForm Noncommercial License 1.0.0
+ *    https://polyformproject.org/licenses/noncommercial/1.0.0
+ *
+ *  КОММЕРЧЕСКОЕ ИСПОЛЬЗОВАНИЕ ЗАПРЕЩЕНО.
+ *
+ *  Разрешено:
+ *    • Личное использование
+ *  • Образовательные цели
+ *  • Благотворительные организации
+ *  • Модификация и распространение (без коммерции)
+ *
+ *  Примечание: в метаблоке указан MIT — это требование OpenUserJS
+ *  для прохождения валидации метаданных. Юридически действуют
+ *  условия PolyForm-Noncommercial-1.0.0, описанные выше и в файле
+ *  LICENSE на GitHub.
+ * ============================================================ */
+
 /* eslint-disable no-return-assign */
 
 (function () {
@@ -33,7 +55,7 @@
     //  КОНФИГ
     // ============================================================
     const CONFIG = {
-        VERSION: '1.4.1',
+        VERSION: '1.4.2',
         CACHE_TTL: 24 * 60 * 60 * 1000,
         FETCH_TIMEOUT: 20000,
         APPLY_DEBOUNCE: 500,
@@ -53,6 +75,68 @@
             togglePanel: 'Alt+A',
             toggleFilter: 'Alt+Shift+F'
         },
+
+        // ============================================================
+        //  ВСТРОЕННЫЕ ИСКЛЮЧЕНИЯ
+        //  Сайты, где фильтр отключён, чтобы не ломать вёрстку.
+        //  Пользователь может дополнять через меню.
+        // ============================================================
+        BUILTIN_EXCLUDES: [
+            // Игровые платформы
+            'roblox.com',
+            'www.roblox.com',
+            'discord.com',
+            'discordapp.com',
+            'twitch.tv',
+            'www.twitch.tv',
+
+            // Соцсети
+            'vk.com',
+            'vk.ru',
+            'ok.ru',
+            'twitter.com',
+            'x.com',
+            'reddit.com',
+            'www.reddit.com',
+
+            // Стриминги и видео
+            'netflix.com',
+            'www.netflix.com',
+            'youtube.com',       // ← если ломает кнопку Shorts — оставь, если нет — убери
+            'www.youtube.com',
+            'youtu.be',
+            'music.youtube.com',
+
+            // Почта и документы
+            'mail.google.com',
+            'docs.google.com',
+            'drive.google.com',
+            'figma.com',
+            'www.figma.com',
+            'notion.so',
+            'www.notion.so',
+
+            // Разработка
+            'github.com',
+            'www.github.com',
+            'gitlab.com',
+            'www.gitlab.com',
+            'stackoverflow.com',
+            'www.stackoverflow.com',
+
+            // Банки и платежи (чтобы не ломать формы)
+            'sberbank.ru',
+            'www.sberbank.ru',
+            'tinkoff.ru',
+            'www.tinkoff.ru',
+            'paypal.com',
+            'www.paypal.com',
+
+            // OpenUserJS / GitHub (для отладки)
+            'openuserjs.org',
+            'www.openuserjs.org'
+        ],
+
         FILTER_SOURCES: [
             { name: 'EasyList', url: 'https://easylist.to/easylist/easylist.txt' },
             { name: 'uBlock Filters', url: 'https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters.txt' },
@@ -202,7 +286,9 @@
     }
 
     function isExcluded(host) {
-        return excludes.some(ex => {
+        // Проверяем встроенные исключения
+        const allExcludes = [...CONFIG.BUILTIN_EXCLUDES, ...excludes];
+        return allExcludes.some(ex => {
             ex = (ex || '').trim().toLowerCase();
             if (!ex) return false;
             if (ex === host) return true;
@@ -210,7 +296,7 @@
                 const b = ex.slice(2);
                 return host.endsWith('.' + b) || host === b;
             }
-            return host.includes(ex);
+            return host === ex || host.endsWith('.' + ex);
         });
     }
 
@@ -576,7 +662,8 @@
                 ['Статус', enabled ? '✅ Включён' : '⏸️ Выключен'],
                 ['Правил из списков', String(rules.length || 0)],
                 ['Своих правил', String(customRules.length || 0)],
-                ['Исключений', String(excludes.length || 0)],
+                ['Встроенных исключений', String(CONFIG.BUILTIN_EXCLUDES.length)],
+                ['Своих исключений', String(excludes.length)],
                 ['Скрыто на этой странице', String(_appliedNow || 0)],
                 ['Обновлён', formatLastUpdate(lastUpdate)],
                 ['Следующее обновление', formatNextRefresh()]
@@ -723,6 +810,12 @@
             await storeSet(CONFIG.STORAGE_KEYS.EXCLUDES, excludes);
             alert('Исключение добавлено');
         });
+        GM_registerMenuCommand('📋 Показать встроенные исключения', () => {
+            alert(
+                'Встроенные исключения (фильтр НЕ работает):\n\n' +
+                CONFIG.BUILTIN_EXCLUDES.join('\n')
+            );
+        });
         GM_registerMenuCommand('🗑️ Очистить кэш', async () => {
             await cacheClear();
             alert('Кэш очищен');
@@ -731,7 +824,8 @@
             alert(
                 `Правил: ${rules.length}\n` +
                 `Своих: ${customRules.length}\n` +
-                `Исключений: ${excludes.length}\n` +
+                `Встроенных исключений: ${CONFIG.BUILTIN_EXCLUDES.length}\n` +
+                `Своих исключений: ${excludes.length}\n` +
                 `Скрыто здесь: ${_appliedNow}\n` +
                 `Обновлён: ${formatLastUpdate(lastUpdate)}\n` +
                 `Следующее: ${formatNextRefresh()}\n` +
